@@ -1,186 +1,194 @@
 #include <stdio.h>
-#include <stdlib.h> 
-#include <string.h> // Required for strcpy() and strcmp()
+#include <stdlib.h>
+#include <string.h>
 
-// --- 1. Data Structure Definition ---
-struct node {
-    char driverName[50]; 
-    struct node *next;
+// --- Data Structure: Represents a Driver ---
+struct Node { // Renamed from DriverNode to Node (common C practice)
+    char driverName[50];
+    struct Node *next;
 };
 
-// --- 2. Global Pointer ---
-struct node *start = NULL; 
+// --- Global Pointer: Tracks the first/next driver ---
+struct Node *start = NULL; // Using 'start' is very common
 
+// --- Function Prototypes ---
+void addDriver(char* name);
+void removeDriver(char* name);
+void assignNextRide();
+void showQueue();
 
-// --- 3. Function Prototypes ---
-void insert_end(char* name);
-void deleteDriver(char* name); 
-void assignRide();
-void display();
-
-
-// --- 4. Main Program (The Menu) ---
+// --- Main Program: The User Interface ---
 int main() {
-    int option;
-    char nameInput[50]; 
+    int choice;
+    char nameInput[50];
 
     printf("===================================\n");
     printf("--- Driver Dispatch System ---\n");
     printf("===================================\n");
 
     do {
-        printf("\n--- Main Menu ---\n");
-        printf("1. Add Driver to Queue\n");
-        printf("2. Assign Next Ride\n");
-        printf("3. Display Driver Queue\n");
-        printf("4. Remove Driver from Queue\n");
-        printf("5. Exit\n");
-        printf("\nEnter your option: ");
-        
-        if (scanf("%d", &option) != 1) {
-            printf("Invalid input. Please enter a number.\n");
-            while (getchar() != '\n'); 
-            option = 0; 
+        printf("\n--- What would you like to do? ---\n");
+        printf("1. Add a Driver\n");
+        printf("2. Assign the Next Ride\n");
+        printf("3. Show the Driver Queue\n");
+        printf("4. Remove a Driver\n");
+        printf("5. Exit Program\n");
+        printf("\nEnter choice: ");
+
+        if (scanf("%d", &choice) != 1) {
+            printf("Oops! Please enter a number between 1 and 5.\n");
+            // Clear buffer if user types letters, etc.
+            while (getchar() != '\n');
+            choice = 0;
             continue;
         }
-        
-        switch (option) {
+
+        switch (choice) {
             case 1:
-                printf("\n--- Add Driver ---\n");
-                printf("  Enter Driver Name (one word): ");
-                scanf("%s", nameInput); 
-                insert_end(nameInput);  
+                printf("\n--- Adding a Driver ---\n");
+                printf("  Enter Driver's Name (one word): ");
+                scanf("%s", nameInput);
+                addDriver(nameInput);
                 break;
             case 2:
-                printf("\n--- Assign Next Ride ---\n");
-                assignRide();
+                printf("\n--- Assigning Next Ride ---\n");
+                assignNextRide();
                 break;
             case 3:
-                printf("\n--- Display Driver Queue ---\n");
-                display();
+                printf("\n--- Current Driver Queue ---\n");
+                showQueue();
                 break;
-            case 4: 
-                printf("\n--- Remove Driver ---\n");
-                printf("  Enter Driver Name to remove: ");
-                scanf("%s", nameInput); 
-                deleteDriver(nameInput); 
+            case 4:
+                printf("\n--- Removing a Driver ---\n");
+                printf("  Enter Driver's Name to remove: ");
+                scanf("%s", nameInput);
+                removeDriver(nameInput);
                 break;
-            case 5: 
-                printf("\nExiting...\n");
+            case 5:
+                printf("\nOkay, shutting down. Goodbye!\n");
                 break;
             default:
-                printf("\nInvalid choice. Please try again.\n");
+                printf("\nInvalid choice. Please pick a number from 1 to 5.\n");
         }
-        
-    } while (option != 5); 
+
+    } while (choice != 5);
+
+    // Removed the explicit memory cleanup loop for simplicity in this version
 
     return 0;
 }
 
+// --- Function Definitions ---
 
-// --- 5. Function Definitions ---
+// Adds a new driver to the end of the line
+void addDriver(char* name) {
+    // Create the new node
+    struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
+    strcpy(newNode->driverName, name);
 
-void insert_end(char* name) {
-    struct node *new_node, *ptr;
-    
-    new_node = (struct node *)malloc(sizeof(struct node));
-    strcpy(new_node->driverName, name); 
-
+    // If the list is empty
     if (start == NULL) {
-        start = new_node;
-        new_node->next = start;
-    } 
-    else {
-        ptr = start;
-        while (ptr->next != start) {
-            ptr = ptr->next; 
-        }
-        
-        ptr->next = new_node;
-        new_node->next = start;
+        start = newNode;
+        newNode->next = start; // Point back to itself
     }
-    
-    printf("  -> Driver %s added to the queue.\n", name);
+    // If the list has drivers already
+    else {
+        // Find the last node (the one pointing back to start)
+        struct Node *current = start;
+        while (current->next != start) {
+            current = current->next;
+        }
+        // Link the last node to the new node
+        current->next = newNode;
+        // Link the new node back to the start
+        newNode->next = start;
+    }
+
+    printf(" Driver added!\n");
 }
 
 
-void deleteDriver(char* name) {
+// Removes a specific driver from the queue by name
+void removeDriver(char* name) {
     if (start == NULL) {
-        printf("  -> Cannot remove driver: The queue is empty.\n");
+        printf("  -> The driver queue is already empty.\n");
         return;
     }
 
-    struct node *current = start;
-    struct node *previous = NULL;
-    struct node *last = start;
+    struct Node *current = start;
+    struct Node *previous = NULL;
+    struct Node *last = start; // Need last node to handle removing 'start'
 
+    // Find the actual last node
     while (last->next != start) {
         last = last->next;
     }
 
+    // Search for the node to remove
     do {
         if (strcmp(current->driverName, name) == 0) {
-            break; 
+            break; // Found it
         }
         previous = current;
         current = current->next;
-    } while (current != start); 
+    } while (current != start); // Loop until back to start
 
+    // Check if we found the driver
     if (strcmp(current->driverName, name) != 0) {
-        printf("  -> Driver %s not found in the queue.\n", name);
+        printf("  -> Sorry, couldn't find Driver %s in the queue.\n", name);
         return;
     }
 
+    // --- Remove the node ---
+
+    // Case 1: Removing the only node
     if (current == start && current->next == start) {
-        start = NULL; 
-        free(current);
+        start = NULL; // List becomes empty
     }
+    // Case 2: Removing the 'start' node (first node)
     else if (current == start) {
-        last->next = start->next; 
-        start = start->next;      
-        free(current);            
+        last->next = start->next; // Last node skips over old start
+        start = start->next;      // New start is the second node
     }
+    // Case 3: Removing a node in the middle or the end
     else {
-        previous->next = current->next; 
-        free(current);                  
+        previous->next = current->next; // Previous node skips over current
     }
 
-    printf("  -> Driver %s was successfully removed from the queue.\n", name);
+    // Free the memory of the removed node
+    free(current);
+    printf("  -> Driver %s was successfully removed.\n", name);
 }
 
 
-void assignRide() {
+// Assigns the ride to the next driver and moves the pointer
+void assignNextRide() {
     if (start == NULL) {
-        printf("  -> No drivers available to assign a ride.\n");
-        return; 
-    }
-
-    printf("  -> RIDE ASSIGNED TO: Driver %s\n", start->driverName);
-
-    start = start->next;
-    
-    printf("  -> Pointer moved. Next driver in line is: Driver %s\n", start->driverName);
-}
-
-
-void display() {
-    if (start == NULL) {
-        // Print nothing if the queue is empty
+        printf("  -> No drivers available right now.\n");
         return;
     }
 
-    struct node *ptr = start;
-    
-    printf("  "); // Indent for alignment
-    
-    do {
-        printf("%s", ptr->driverName);
-        ptr = ptr->next;
-        // Only print arrow if it's not the last node
-        if (ptr != start) {
-            printf(" -> "); 
-        }
-    } while (ptr != start); 
+    printf(" Ride assigned to: %s\n", start->driverName);
 
-    printf("\n"); // End the line
+    // Move 'start' to the next driver in the circle
+    start = start->next;
+}
+
+
+// Shows the current order of drivers in the queue as a numbered list
+void showQueue() {
+    if (start == NULL) {
+        printf("  -> The driver queue is currently empty.\n");
+        return;
+    }
+
+    struct Node *current = start;
+    int count = 1;
+
+    // Loop through the circle and print each driver with a number
+    do {
+        printf("  %d) %s\n", count, current->driverName);
+        current = current->next;
+        count++;
+    } while (current != start); // Stop when we return to the start
 }
