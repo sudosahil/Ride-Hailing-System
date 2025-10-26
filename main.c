@@ -3,13 +3,13 @@
 #include <string.h>
 
 // --- Data Structure: Represents a Driver ---
-struct Node { // Renamed from DriverNode to Node (common C practice)
+struct Node { 
     char driverName[50];
     struct Node *next;
 };
 
 // --- Global Pointer: Tracks the first/next driver ---
-struct Node *start = NULL; // Using 'start' is very common
+struct Node *start = NULL; 
 
 // --- Function Prototypes ---
 void addDriver(char* name);
@@ -37,7 +37,6 @@ int main() {
 
         if (scanf("%d", &choice) != 1) {
             printf("Oops! Please enter a number between 1 and 5.\n");
-            // Clear buffer if user types letters, etc.
             while (getchar() != '\n');
             choice = 0;
             continue;
@@ -73,8 +72,6 @@ int main() {
 
     } while (choice != 5);
 
-    // Removed the explicit memory cleanup loop for simplicity in this version
-
     return 0;
 }
 
@@ -89,7 +86,7 @@ void addDriver(char* name) {
     // If the list is empty
     if (start == NULL) {
         start = newNode;
-        newNode->next = start; // Point back to itself
+        newNode->next = start; 
     }
     // If the list has drivers already
     else {
@@ -117,7 +114,7 @@ void removeDriver(char* name) {
 
     struct Node *current = start;
     struct Node *previous = NULL;
-    struct Node *last = start; // Need last node to handle removing 'start'
+    struct Node *last = start; 
 
     // Find the actual last node
     while (last->next != start) {
@@ -127,13 +124,11 @@ void removeDriver(char* name) {
     // Search for the node to remove
     do {
         if (strcmp(current->driverName, name) == 0) {
-            break; // Found it
+            break;
         }
         previous = current;
         current = current->next;
-    } while (current != start); // Loop until back to start
-
-    // Check if we found the driver
+    } while (current != start); 
     if (strcmp(current->driverName, name) != 0) {
         printf("  -> Sorry, couldn't find Driver %s in the queue.\n", name);
         return;
@@ -147,12 +142,12 @@ void removeDriver(char* name) {
     }
     // Case 2: Removing the 'start' node (first node)
     else if (current == start) {
-        last->next = start->next; // Last node skips over old start
-        start = start->next;      // New start is the second node
+        last->next = start->next;
+        start = start->next;    
     }
     // Case 3: Removing a node in the middle or the end
     else {
-        previous->next = current->next; // Previous node skips over current
+        previous->next = current->next; //
     }
 
     // Free the memory of the removed node
@@ -192,3 +187,4 @@ void showQueue() {
         count++;
     } while (current != start); // Stop when we return to the start
 }
+
